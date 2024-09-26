@@ -10,9 +10,7 @@ declare module "next-auth" {
   interface Session {
     user: {
       id: string;
-      name?: string | null;
-      email?: string | null;
-      image?: string | null;
+      password: string;
     };
   }
 }
@@ -80,6 +78,7 @@ export const { auth, signIn, signOut } = NextAuth({
     },
 
     async session({ session, token }) {
+      console.log("Session callback called"); // デバッグ用のログ
       if (token) {
         if (session.user) {
           session.user.name = token.name;

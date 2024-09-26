@@ -1,21 +1,25 @@
 'use server'
 
-import { signIn } from "next-auth/react";
-export function login(userId: string, password: string) {
-    signIn("credentials", {
-        userId: userId,
-        password: password,
-        callbackUrl: "/",
-    }).catch((error) => {
-        console.error("ログインに失敗しました");
-        throw error
-    }).then((response) => {
-        if (response?.error) {
-            console.error("ログインに失敗しました");
-            throw Error(response.error)
-        } else {
-            console.log("ログインしました");
-        }
-    }  
-    )
+import { signIn } from "@/auth";
+
+type status = "success" | "error";
+
+export async function login(userId: string, password: string) {
+  try {
+    console.log("Logging in with user ID:", userId);
+    const result = await signIn("credentials", {
+      redirect: false,
+      id: userId,
+      password: password,
+    });
+
+    if (result?.error) {
+      throw new Error(result.error);
+    }
+
+    return "success" as status;
+  } catch (error) {
+    console.error("Login error:", error);
+    return "error" as status;
+  }
 }

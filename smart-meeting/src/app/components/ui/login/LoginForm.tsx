@@ -3,7 +3,7 @@
 import React from 'react'
 import { useForm } from "react-hook-form";
 import { toast } from 'react-toastify';
-import { signIn } from 'next-auth/react';
+import { login } from "@/app/lib/actions/userAction";
 import { useRouter } from 'next/navigation';
 
 type Form = {
@@ -20,23 +20,21 @@ export default function LoginForm() {
         formState: { errors }
       } = useForm<Form>()
 
-      const submit = (data: Form) => {
+      async function submit (data: Form) {
+        try {
+          const status = await login(data.userId, data.password)
+          if (status === "success") {
+            toast.success("ログインしました")
+            router.push("/")
+          } else {
+            toast.error("ログインに失敗しました")
+            console.error("ログインに失敗しました")
+          }
+        } catch (error) {
+          toast.error("ログインに失敗しました")
 
-        signIn("credentials", {
-          userId: data.userId,
-          password: data.password,
-          callbackUrl: "/",
-        }).catch((error) => {
-          toast.error("ログインに失敗しました");
-        }).then((response) => {
-            if (response?.error) {
-                toast.error("ログインに失敗しました");
-            } else {
-                toast.success("ログインしました");
-                router.push("/");
-            }
         }
-        );
+
       }
   return (
     <div>
