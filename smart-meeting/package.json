@@ -1,0 +1,39 @@
+{
+  "name": "smart-meeting",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "preinstall": "npx only-allow pnpm",
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "format": "prettier --write ."
+  },
+  "dependencies": {
+    "@prisma/client": "5.20.0",
+    "next": "14.2.4",
+    "next-auth": "5.0.0-beta.19",
+    "prettier": "^3.3.3",
+    "prisma": "^5.20.0",
+    "react": "19.0.0-rc-f994737d14-20240522",
+    "react-dom": "19.0.0-rc-f994737d14-20240522",
+    "react-hook-form": "^7.53.0",
+    "react-toastify": "^10.0.5",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/next-auth": "^3.15.0",
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "autoprefixer": "^10.4.20",
+    "dotenv-cli": "^7.4.2",
+    "eslint": "^8",
+    "eslint-config-next": "14.2.13",
+    "mini-css-extract-plugin": "^2.9.1",
+    "postcss": "^8.4.47",
+    "tailwindcss": "^3.4.13",
+    "typescript": "^5"
+  }
+}
