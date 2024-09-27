@@ -1,28 +1,59 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import Header from "@/app/components/ui/top/Header";
+import Timetable from "@/app//components/ui/top/Timetable";
+import { getRoomsWithReservationByDateSpan } from "./lib/data";
+import { time } from "console";
+import { Room } from "@/app/types/room";
+import { useSession } from "next-auth/react";
 
 export default function Home() {
-  const [selectedDate, setSelectedDate] = useState("2024-10-09");
+  const date = new Date();
+  const timetableStartTime = 7;
+  const timetableEndTime = 22;
+  //var roomsWithReservationsByDate: Room[]= [];
+  const [selectedDate, setSelectedDate] = useState(date.toISOString().split("T")[0]);
+  const [rooms, setRooms] = useState<Room[]>([]);
+  const { data: session } = useSession();
+
+  console.log(session?.user);
+  console.log(session?.user.id);
+
+  useEffect(() => {
+    // startDateとendDateを作成
+
+    const startDate = new Date(selectedDate);
+    const endDate = new Date(selectedDate);
+    startDate.setHours(timetableStartTime, 0, 0, 0);
+    endDate.setHours(timetableEndTime, 0, 0, 0);
+    var roomsWithReservationsByDate: Room[] = [];
+    (async() => {
+
+      // getRoomsWithReservationByDateSpan(startDate, endDate)で、startDateからendDateまでの予約を、会議室に紐づけて取得
+      
+
+      roomsWithReservationsByDate = await getRoomsWithReservationByDateSpan(timetableStartTime, timetableEndTime);
+      setRooms(roomsWithReservationsByDate);
+    }) ();
+    console.log(roomsWithReservationsByDate);
+
+
+
+  }, [selectedDate]);
+  
 
   return (
     <div className="p-8">
       {/* ヘッダー */}
-      <header className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Smart Meeting</h1>
-        <div>
-          <span>橋本一希（ユーザー）</span>
-          <button className="ml-4 px-4 py-2 bg-red-500 text-white rounded">
-            ログアウト
-          </button>
-        </div>
-      </header>
 
+      <Header />
       {/* メイン */}
       <div className="flex mt-8">
         {/* Left: Reservation List */}
         <div className="flex-2 mr-8 basis-3/4">
           <h2 className="text-xl font-semibold">予約一覧</h2>
+          {/* 日付の選択 */}
           <label className="block mt-4">Date</label>
           <input
             type="date"
@@ -30,8 +61,10 @@ export default function Home() {
             onChange={(e) => setSelectedDate(e.target.value)}
             className="border border-gray-300 rounded mt-1 p-2"
           />
+          <Timetable rooms={rooms}/>
 
           {/* Room Time Slots */}
+
           <div className="flex items-center mt-6">
             <button className="text-lg">{"<"}</button>
             <div className="flex-1 flex justify-around">

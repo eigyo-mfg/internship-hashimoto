@@ -41,9 +41,8 @@ model Reservation {
   userId    Int
   room     Room     @relation(fields: [roomId], references: [id])
   roomId    Int
-
-  startAt   DateTime
-  endAt     DateTime
+  startAt   Int
+  endAt     Int
   description String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

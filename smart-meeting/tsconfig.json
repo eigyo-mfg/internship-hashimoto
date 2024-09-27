@@ -28,6 +28,6 @@
     "**/*.tsx",
     ".next/types/**/*.ts",
     "tailwind"
-  ],
+, "src/auth.ts"  ],
   "exclude": ["node_modules"]
 }

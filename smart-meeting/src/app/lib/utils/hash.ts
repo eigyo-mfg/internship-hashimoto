@@ -21,7 +21,6 @@ export function passwordMatch(
   const hash = crypto.createHash("sha256");
   hash.update(saltedPassword);
   const hashedPassword = hash.copy().digest("hex");
-
   if (hashedPassword === hashedCorrectPassword) {
     res = true;
   } else {

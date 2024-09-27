@@ -1,6 +1,8 @@
+'use server'
+
 import  LoginForm  from "@/app/components/ui/login/LoginForm"
 
-export default function Page() {
+export default async function Page() {
   return (
 
     <div className="min-h-screen flex flex-col justify-center items-center bg-gray-100">
@@ -9,6 +11,7 @@ export default function Page() {
       <h1 className="text-2xl font-bold mb-8">Smart Meeting</h1>
       <h2 className="text-xl font-semibold mb-6 text-center">ログイン</h2>
       {/* Login Form */}
+
         <LoginForm />
 
       </div>

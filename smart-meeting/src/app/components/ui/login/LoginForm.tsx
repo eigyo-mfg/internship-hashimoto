@@ -2,9 +2,9 @@
 
 import React from 'react'
 import { useForm } from "react-hook-form";
-import { toast } from 'react-toastify';
-import { login } from "@/app/lib/actions/userAction";
+import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'react-toastify';
 
 type Form = {
     userId: string;
@@ -21,20 +21,18 @@ export default function LoginForm() {
       } = useForm<Form>()
 
       async function submit (data: Form) {
-        try {
-          const status = await login(data.userId, data.password)
-          if (status === "success") {
-            toast.success("ログインしました")
-            router.push("/")
-          } else {
-            toast.error("ログインに失敗しました")
-            console.error("ログインに失敗しました")
-          }
-        } catch (error) {
-          toast.error("ログインに失敗しました")
 
+        const response = await signIn("credentials", {
+          redirect: false,
+          id: data.userId,
+          password: data.password,
+        });
+        if (response?.ok) {
+          router.replace("/");
+        } else {
+          toast.error("ログインに失敗しました");
         }
-
+        
       }
   return (
     <div>
