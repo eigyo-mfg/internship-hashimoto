@@ -2,7 +2,22 @@
 
 import prisma from "@/app/lib/prisma";
 import { User } from "@/app/types/user";
-import { Room } from "../types/room";
+import { Room } from "@/app/types/room";
+
+export async function getPassword(userId: string) {
+  const data = await prisma.user.findUnique({
+    select: {
+      password: true,
+    },
+    where: {
+      id: parseInt(userId),
+    },
+  });
+  if (!data) {
+    return null;
+  }
+  return data.password;
+}
 
 export async function getUser(userId: string) {
   const data = await prisma.user.findUnique({
@@ -11,7 +26,6 @@ export async function getUser(userId: string) {
       firstName: true,
       lastName: true,
       privilege: true,
-      password: true,
     },
     where: {
       id: parseInt(userId),
@@ -25,12 +39,12 @@ export async function getUser(userId: string) {
     firstName: data.firstName,
     lastName: data.lastName,
     privilege: data.privilege,
-    password: data.password,
   };
   return user;
 }
 
-export async function getRoomsWithReservationByDateSpan(startDate: number, endDate: number) {
+export async function getRoomsWithReservationByDate(date: string) {
+  
   const data = await prisma.room.findMany({
     select: {
       id: true,
@@ -38,6 +52,7 @@ export async function getRoomsWithReservationByDateSpan(startDate: number, endDa
       Reservations: {
         select: {
           id: true,
+          date: true,
           startAt: true,
           endAt: true,
           userId: true,
@@ -51,18 +66,7 @@ export async function getRoomsWithReservationByDateSpan(startDate: number, endDa
           },
         },
         where: {
-          AND: [
-            {
-              startAt: {
-                lte: startDate,
-              },
-            },
-            {
-              endAt: {
-                gte: endDate,
-              },
-            },
-          ],
+          date: date,
         },
         orderBy: {
           startAt: "asc",
@@ -70,7 +74,7 @@ export async function getRoomsWithReservationByDateSpan(startDate: number, endDa
       },
     },
   });
-  console.log(data);
+
   const rooms: Room[] = data.map((room) => {
     return {
       id: room.id.toString(),
@@ -93,4 +97,27 @@ export async function getRoomsWithReservationByDateSpan(startDate: number, endDa
     };
   });
   return rooms;
+}
+
+export async function createReservation(roomId: string, userId: string, date: string, startAt: number, description: string) {
+  const data = await prisma.reservation.create({
+    data: {
+      startAt: startAt,
+      endAt: startAt + 1,
+      date: date,
+      userId: parseInt(userId),
+      roomId: parseInt(roomId),
+      description: description,
+    },
+  });
+  return data;
+}
+
+export async function deleteReservation(reservationId: string) {
+  const data = await prisma.reservation.delete({
+    where: {
+      id: parseInt(reservationId),
+    },
+  });
+  return data;
 }

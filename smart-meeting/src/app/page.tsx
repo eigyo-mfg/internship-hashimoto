@@ -3,22 +3,60 @@
 import { useEffect, useState } from "react";
 import Header from "@/app/components/ui/top/Header";
 import Timetable from "@/app//components/ui/top/Timetable";
-import { getRoomsWithReservationByDateSpan } from "./lib/data";
-import { time } from "console";
+import { getRoomsWithReservationByDate } from "@/app/lib/data";
 import { Room } from "@/app/types/room";
 import { useSession } from "next-auth/react";
+import CreateNewReservationModal from "./components/ui/top/modal/CreateNewReservationModal";
+import Modal from "react-modal";
+import { User } from "@/app/types/user";
+import { getUser } from "@/app/lib/data";
+import { toast } from "react-toastify";
+import { signOut } from "next-auth/react";
+import EditReservation from "./components/ui/top/modal/EditReservation";
+
+export enum ModalController {
+  None,
+  Create,
+  Edit,
+}
+
+export type InfoOfNewReservation = {
+  room?: Room;
+
+  startAt?: number;
+};
+
+export type InfoOfEditReservation = {
+  reservationId?: string;
+  room?: Room;
+
+  startAt?: number;
+};
+
+
+
+Modal.setAppElement(".App");
+
 
 export default function Home() {
   const date = new Date();
   const timetableStartTime = 7;
   const timetableEndTime = 22;
-  //var roomsWithReservationsByDate: Room[]= [];
   const [selectedDate, setSelectedDate] = useState(date.toISOString().split("T")[0]);
-  const [rooms, setRooms] = useState<Room[]>([]);
-  const { data: session } = useSession();
+  const [infoOfNewReservation, setInfoOfNewReservation] = useState<InfoOfNewReservation>({});
+  const [InfoOfEditReservation, setInfoOfEditReservation] = useState<InfoOfEditReservation>({});
 
-  console.log(session?.user);
-  console.log(session?.user.id);
+  const [rooms, setRooms] = useState<Room[]>([]);
+  const [modalController, setModalController] = useState(ModalController.None);
+  const [user, setUser] = useState<User>();
+  const { data: session } = useSession();
+  let userId: string;
+  if (!session) {
+    return <div>loading...</div>;
+  } else {
+    userId = session.user.id;
+  }
+    
 
   useEffect(() => {
     // startDateとendDateを作成
@@ -27,16 +65,23 @@ export default function Home() {
     const endDate = new Date(selectedDate);
     startDate.setHours(timetableStartTime, 0, 0, 0);
     endDate.setHours(timetableEndTime, 0, 0, 0);
-    var roomsWithReservationsByDate: Room[] = [];
+
     (async() => {
 
       // getRoomsWithReservationByDateSpan(startDate, endDate)で、startDateからendDateまでの予約を、会議室に紐づけて取得
-      
+    
+      const roomsWithReservationsByDate = await getRoomsWithReservationByDate(selectedDate );
+      const data = await getUser(userId);
+      if (!data) {
+        toast.error("ユーザー情報が取得できませんでした");
+        signOut();
+      } else {
+        setUser(data)
+        setRooms(roomsWithReservationsByDate);
+      }
 
-      roomsWithReservationsByDate = await getRoomsWithReservationByDateSpan(timetableStartTime, timetableEndTime);
-      setRooms(roomsWithReservationsByDate);
+
     }) ();
-    console.log(roomsWithReservationsByDate);
 
 
 
@@ -44,10 +89,18 @@ export default function Home() {
   
 
   return (
-    <div className="p-8">
+    <div className="p-8 App">
       {/* ヘッダー */}
+      <Header user={user} />
 
-      <Header />
+  {modalController === ModalController.Create && (
+
+        <CreateNewReservationModal isOpen={true} room={infoOfNewReservation?.room} date={selectedDate} startAt={infoOfNewReservation.startAt} userId={userId}  setModalController={setModalController} />)
+      }
+      {modalController === ModalController.Edit && (
+        
+        <EditReservation reservationId={InfoOfEditReservation?.reservationId} isOpen={true} room={InfoOfEditReservation?.room} date={selectedDate} startAt={infoOfNewReservation.startAt} userId={userId}  setModalController={setModalController} />)
+      }
       {/* メイン */}
       <div className="flex mt-8">
         {/* Left: Reservation List */}
@@ -61,89 +114,16 @@ export default function Home() {
             onChange={(e) => setSelectedDate(e.target.value)}
             className="border border-gray-300 rounded mt-1 p-2"
           />
-          <Timetable rooms={rooms}/>
+          <Timetable rooms={rooms} setModalController={setModalController} setInfoOfNewReservation={setInfoOfNewReservation} setInfoOfEditReservation={setInfoOfEditReservation}/>
 
           {/* Room Time Slots */}
 
-          <div className="flex items-center mt-6">
-            <button className="text-lg">{"<"}</button>
-            <div className="flex-1 flex justify-around">
-              <div className="text-center">会議室A</div>
-              <div className="text-center">会議室B</div>
-              <div className="text-center">会議室C</div>
-              <div className="text-center">会議室D</div>
-            </div>
-            <button className="text-lg">{">"}</button>
-          </div>
-
-          {/* Time Slots */}
-          <div className="relative mt-6 border-l border-black h-[600px]">
-            {[...Array(17)].map((_, i) => (
-              <div
-                key={i}
-                className="h-8 border-b border-gray-300 text-gray-600"
-              >
-                {6 + i}:00
-              </div>
-            ))}
-
-            {/* Sample Reservation Block */}
-            <div className="absolute top-40 left-0 bg-gray-300 w-24 h-16 text-center leading-[4rem]">
-              橋本
-            </div>
-          </div>
         </div>
 
-        {/* Right: Reservation Details */}
-        <div className="flex-1 border-l border-black pl-8 basis-1/4">
-          {/* Reservation Info */}
-          <div className="mb-16">
-            <h3 className="text-lg font-semibold">会議室A</h3>
-            <p>予約者：橋本（あなた）</p>
-            <p>開始：10:20</p>
-            <p>終了：12:40</p>
-            <p className="mt-4">説明</p>
-            <p>X社さんとの面談</p>
-            <button className="mt-4 bg-red-500 text-white py-2 px-4 rounded">
-              削除
-            </button>
-          </div>
+
 
           {/* New Reservation Form */}
-          <div>
-            <h3 className="text-lg font-semibold">会議室Aを予約</h3>
-            <div className="mt-4">
-              <label className="block">予約日</label>
-              <input
-                type="text"
-                value={selectedDate}
-                readOnly
-                className="border border-gray-300 rounded p-2 mt-1 w-full"
-              />
-            </div>
-            <div className="mt-4">
-              <label className="block">開始時刻</label>
-              <input
-                type="text"
-                className="border border-gray-300 rounded p-2 mt-1 w-full"
-              />
-            </div>
-            <div className="mt-4">
-              <label className="block">終了時刻</label>
-              <input
-                type="text"
-                className="border border-gray-300 rounded p-2 mt-1 w-full"
-              />
-            </div>
-            <div className="mt-4">
-              <label className="block">説明</label>
-              <textarea className="border border-gray-300 rounded p-2 mt-1 w-full h-24"></textarea>
-            </div>
-            <button className="mt-4 bg-purple-600 text-white py-2 px-4 rounded">
-              予約
-            </button>
-          </div>
-        </div>
+                
       </div>
     </div>
   );

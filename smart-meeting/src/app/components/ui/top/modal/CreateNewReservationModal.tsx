@@ -2,7 +2,7 @@ import Modal from 'react-modal';
 import React, { useState, useRef } from 'react';
 import { Room } from '@/app/types/room';
 import { InfoOfNewReservation, ModalController } from '@/app/page';
-import { createReservation, deleteReservation } from '@/app/lib/data';
+import { createReservation } from '@/app/lib/data';
 import { useRouter } from 'next/navigation';
 
 const customStyles = {
@@ -19,22 +19,21 @@ const customStyles = {
 interface Props {
   isOpen: boolean;
   room?: Room;
-  reservationId?: string;
   date?: string;
   userId: string
-  setModalController: React.Dispatch<React.SetStateAction<ModalController>>;
   startAt?: number;
+  setModalController: React.Dispatch<React.SetStateAction<ModalController>>;  
 }
 
-export default function EditReservation({reservationId,isOpen, room, date, userId, setModalController, startAt=0}: Props) {
+export default function CreateNewReservationModal({isOpen, room, date, userId, setModalController, startAt=0}: Props) {
   const [ modalIsOpen, setModalIsOpen ] = useState(isOpen);
   const descriptionRef = useRef<string>('');
 
  async function handleSubmit () {
     const description = descriptionRef.current;
     if (room && date) {
-      await deleteReservation(reservationId as string);
-      setModalController(ModalController.None);
+      createReservation(room.id, userId, date, startAt, description as string);
+      //setModalController(ModalController.None);
       // ページをリロード
       window.location.reload();
       closeModal();
@@ -46,7 +45,6 @@ export default function EditReservation({reservationId,isOpen, room, date, userI
   function closeModal() {
     setModalIsOpen(false);
     setModalController(ModalController.None);
-
   }
   return (
     <Modal isOpen={modalIsOpen} style={customStyles} onRequestClose={closeModal}>
@@ -67,7 +65,8 @@ export default function EditReservation({reservationId,isOpen, room, date, userI
           } } />
         </div>
         <div>
-        <input type='submit' value="削除する" onClick={handleSubmit} />
+          <button onClick={closeModal}>キャンセル</button>
+        <input type='submit' value="予約する" onClick={handleSubmit}/>
         </div>
       </div>
     </Modal>

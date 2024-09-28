@@ -41,6 +41,7 @@ model Reservation {
   userId    Int
   room     Room     @relation(fields: [roomId], references: [id])
   roomId    Int
+  date String
   startAt   Int
   endAt     Int
   description String?

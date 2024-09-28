@@ -11,7 +11,7 @@ declare module "next-auth" {
   }
 }
 import Credentials from "next-auth/providers/credentials";
-import { getUser } from "@/app/lib/data";
+import { getPassword, getUser } from "@/app/lib/data";
 import { passwordMatch } from "@/app/lib/utils/hash";
 import { z } from "zod";
 
@@ -47,19 +47,19 @@ export const authOptions:NextAuthOptions = {
             return null;
           }
           //console.log('Credentials')
-          const user = await getUser(id);
-          if (!user) {
+          const hashedPassword = await getPassword(id);
+          if (!hashedPassword) {
             return null;
           }
           const isPasswordMatched = passwordMatch(
             password,
-            user.password as string,
+            hashedPassword
           );
           
           //const passwordsMatch = await bcrypt.compare(password, user.password);
           if (isPasswordMatched) {
             console.log("User authenticated successfully"); // デバッグ用のログ
-            return { id: user.id, privilege: user.privilege, name: user.firstName + " " + user.lastName };
+            return { id: id };
           }
           console.log("passwords doesn't match"); // デバッグ用のログ
           return null;
