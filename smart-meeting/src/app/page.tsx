@@ -6,13 +6,14 @@ import Timetable from "@/app//components/ui/top/Timetable";
 import { getRoomsWithReservationByDate } from "@/app/lib/data";
 import { Room } from "@/app/types/room";
 import { useSession } from "next-auth/react";
-import CreateNewReservationModal from "./components/ui/top/modal/CreateNewReservationModal";
+import CreateNewReservationModal from "@/app/components/ui/top/modal/CreateNewReservationModal";
 import Modal from "react-modal";
 import { User } from "@/app/types/user";
 import { getUser } from "@/app/lib/data";
 import { toast } from "react-toastify";
 import { signOut } from "next-auth/react";
-import EditReservation from "./components/ui/top/modal/EditReservation";
+import EditReservation from "@/app/components/ui/top/modal/EditReservation";
+import { Reservation } from "@/app/types/reservation";
 
 export enum ModalController {
   None,
@@ -27,7 +28,7 @@ export type InfoOfNewReservation = {
 };
 
 export type InfoOfEditReservation = {
-  reservationId?: string;
+  reservation?: Reservation;
   room?: Room;
 
   startAt?: number;
@@ -42,13 +43,15 @@ export default function Home() {
   const date = new Date();
   const timetableStartTime = 7;
   const timetableEndTime = 22;
-  const [selectedDate, setSelectedDate] = useState(date.toISOString().split("T")[0]);
+  const perPage = 5
+  const [selectedDate, setSelectedDate] = useState(date.toLocaleDateString("ja-JP", {year: "numeric",month: "2-digit",
+    day: "2-digit"}).replaceAll('/', '-'));
   const [infoOfNewReservation, setInfoOfNewReservation] = useState<InfoOfNewReservation>({});
   const [InfoOfEditReservation, setInfoOfEditReservation] = useState<InfoOfEditReservation>({});
-
   const [rooms, setRooms] = useState<Room[]>([]);
   const [modalController, setModalController] = useState(ModalController.None);
   const [user, setUser] = useState<User>();
+  const [currentPage, setCurrentPage] = useState(1);
   const { data: session } = useSession();
   let userId: string;
   if (!session) {
@@ -72,11 +75,12 @@ export default function Home() {
     
       const roomsWithReservationsByDate = await getRoomsWithReservationByDate(selectedDate );
       const data = await getUser(userId);
+
       if (!data) {
         toast.error("ユーザー情報が取得できませんでした");
         signOut();
       } else {
-        setUser(data)
+        setUser(data);
         setRooms(roomsWithReservationsByDate);
       }
 
@@ -99,22 +103,44 @@ export default function Home() {
       }
       {modalController === ModalController.Edit && (
         
-        <EditReservation reservationId={InfoOfEditReservation?.reservationId} isOpen={true} room={InfoOfEditReservation?.room} date={selectedDate} startAt={infoOfNewReservation.startAt} userId={userId}  setModalController={setModalController} />)
+        <EditReservation roomName={InfoOfEditReservation.room?.name} reservation={InfoOfEditReservation.reservation} isOpen={true} date={selectedDate} startAt={infoOfNewReservation.startAt} userId={userId}  setModalController={setModalController} />)
       }
       {/* メイン */}
-      <div className="flex mt-8">
+      <div className="mt-8">
         {/* Left: Reservation List */}
         <div className="flex-2 mr-8 basis-3/4">
-          <h2 className="text-xl font-semibold">予約一覧</h2>
           {/* 日付の選択 */}
-          <label className="block mt-4">Date</label>
+          <div className="text-right text-xl">
+          <label className="block mt-4">Date：
           <input
             type="date"
             value={selectedDate}
             onChange={(e) => setSelectedDate(e.target.value)}
             className="border border-gray-300 rounded mt-1 p-2"
-          />
-          <Timetable rooms={rooms} setModalController={setModalController} setInfoOfNewReservation={setInfoOfNewReservation} setInfoOfEditReservation={setInfoOfEditReservation}/>
+          /></label>
+          </div>
+          <div className="text-center my-8 text-2xl">
+          <button className="mx-16 my-4 disabled:text-gray-100 " disabled={currentPage === 1} onClick={()=> {
+            if (currentPage === 1) {
+              return
+            } else {
+
+            setCurrentPage(currentPage - 1)
+            }
+
+
+          }}>＜</button>予約一覧
+            <button className="mx-16 my-4 disabled:text-gray-100 " disabled={perPage * currentPage >= rooms.length} onClick={() => {
+              if (perPage * currentPage >= rooms.length) {
+                return
+              } else {
+                setCurrentPage(currentPage + 1)
+              }
+            }}>＞</button>
+          </div>
+
+
+          <Timetable rooms={rooms.slice(perPage * (currentPage - 1), perPage * currentPage )} setModalController={setModalController} setInfoOfNewReservation={setInfoOfNewReservation} setInfoOfEditReservation={setInfoOfEditReservation}/>
 
           {/* Room Time Slots */}
 

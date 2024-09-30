@@ -13,6 +13,10 @@ const customStyles = {
     bottom: 'auto',
     marginRight: '-50%',
     transform: 'translate(-50%, -50%)',
+    width: '400px',
+    padding: '20px',
+    borderRadius: '10px',
+    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
   },
 };
 
@@ -48,26 +52,28 @@ export default function CreateNewReservationModal({isOpen, room, date, userId, s
   }
   return (
     <Modal isOpen={modalIsOpen} style={customStyles} onRequestClose={closeModal}>
-      <h2>{room?.name}を予約</h2>
+      <div className='w-80 text-left text-lg'>
+      <h1 className='text-left font-bold text-center m-4 text-xl'>{room?.name}を予約</h1>
       <div>
         <div>
-        <h3>予約日</h3>
-        <p>{date}</p>
+        <p>予約日：
+     {date?.replaceAll('-', '/')}</p>
         </div>
-        <div>
-          <h3>予約時間</h3>
-          <p>{startAt}:00-{startAt + 1}:00</p>
+        <div className='my-2'>
+
+          <p>予約時間：{startAt}:00-{startAt + 1}:00</p>
         </div>
         <div>
           <h3>説明（任意）</h3>
-          <textarea onChange={(e: React.ChangeEvent<HTMLTextAreaElement>)=> {
+          <textarea className='resize-none w-full border-2 mt-4' onChange={(e: React.ChangeEvent<HTMLTextAreaElement>)=> {
             descriptionRef.current = e.target.value;
           } } />
         </div>
-        <div>
-          <button onClick={closeModal}>キャンセル</button>
-        <input type='submit' value="予約する" onClick={handleSubmit}/>
+        <div className='mt-8'>
+          <button className='mx-16' onClick={closeModal}>キャンセル</button>
+        <input className='text-teal-600 font-bold' type='submit' value="予約する" onClick={handleSubmit}/>
         </div>
+      </div>
       </div>
     </Modal>
   )

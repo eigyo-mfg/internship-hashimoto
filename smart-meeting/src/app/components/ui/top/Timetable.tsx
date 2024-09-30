@@ -18,10 +18,10 @@ export default function Timetable({ rooms, setModalController, setInfoOfNewReser
     const roomsIndexList: number[] = Array.from({length: rooms.length}, () => 0);
   return (
     <div>
-      <table>
+      <table className='w-full'>
         <thead className='border-b-2'>      
-            <tr>  
-            <th className='' scope='row'></th>
+            <tr>
+            <th className='w-28' scope='row'></th>
         {rooms.map((room: Room, i: number) => {
 
             return <th className='border-x-2' key={i}>{room.name}</th>
@@ -43,21 +43,19 @@ export default function Timetable({ rooms, setModalController, setInfoOfNewReser
                           var reservation = room.Reservations[roomsIndexList[j]];
                           if (reservation && reservation.startAt === startTime) {
                             roomsIndexList[j] += 1;
-                            console.log(roomsIndexList);
-                            return <td className='border-x-2 text-center' key={j}>{
+                            return <td className='border-x-2 text-center text-green-800' key={j}>{
                               <button onClick={
                                 () => {
                                   setModalController(ModalController.Edit);
                                   setInfoOfEditReservation({
                                     room: room,
                                     startAt:timetableStartTime + i,
-                                    reservationId: reservation.id,
+                                    reservation: reservation,
                                   });
                                 }
                               }  key={j
                               }><div>
                                 <p>{reservation.user?.lastName} {reservation.description && "*"}</p>
-                      
                               </div>
                               </button>
                             }</td>
