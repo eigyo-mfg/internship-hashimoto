@@ -4,6 +4,8 @@ import { InfoOfEditReservation, InfoOfNewReservation } from '@/app/page';
 import { ModalController } from '@/app/page';
 
 interface Props {
+  selectedDate: Date;
+  date:Date;
   rooms: Room[];
   setModalController: React.Dispatch<React.SetStateAction<ModalController>>;
   setInfoOfNewReservation: React.Dispatch<React.SetStateAction<InfoOfNewReservation>>;
@@ -11,8 +13,7 @@ interface Props {
 }
 
 
-export default function Timetable({ rooms, setModalController, setInfoOfNewReservation, setInfoOfEditReservation }: Props) {
-
+export default function Timetable({selectedDate,date, rooms, setModalController, setInfoOfNewReservation, setInfoOfEditReservation }: Props) {
     const timetableStartTime = 7;
     const timetableEndTime = 22;
     const roomsIndexList: number[] = Array.from({length: rooms.length}, () => 0);
@@ -31,9 +32,9 @@ export default function Timetable({ rooms, setModalController, setInfoOfNewReser
         <tbody>
             {Array.from({length: timetableEndTime - timetableStartTime + 1}).map((_, i) => {
               var startTime = timetableStartTime + i;
-
+              selectedDate.setHours(startTime + 1, 0, 0, 0);
                 return (
-                    <tr key={i} className='border-b-2 border-black-500 h-12'>
+                    <tr key={i} className='border-b-2 border-black-500 h-6'>
                         <th className='w-16'>{timetableStartTime + i}:00-{timetableStartTime + i + 1}:00</th>
                         {rooms.map((room: Room, j: number) => {
                           if (!room.Reservations) {
@@ -44,7 +45,7 @@ export default function Timetable({ rooms, setModalController, setInfoOfNewReser
                           if (reservation && reservation.startAt === startTime) {
                             roomsIndexList[j] += 1;
                             return <td className='border-x-2 text-center text-green-800' key={j}>{
-                              <button onClick={
+                              <button disabled={selectedDate < date} className='disabled:text-slate-300' onClick={
                                 () => {
                                   setModalController(ModalController.Edit);
                                   setInfoOfEditReservation({
@@ -62,15 +63,15 @@ export default function Timetable({ rooms, setModalController, setInfoOfNewReser
 
                           } else {
                             return <td className="border-x-2 text-center" key={j}>{
-                        <button onClick={
-                          () => { 
+                        <button disabled={selectedDate < date} onClick={
+                          () => {
                             setModalController(ModalController.Create);
                             setInfoOfNewReservation({
                               room: room,
                               startAt:timetableStartTime + i,
                             });
                           }
-                        } className='text-3xl m-2 text-green-600 align-center'>+</button>
+                        } className='text-3xl m-2 text-green-600 align-center disabled:text-slate-300'>+</button>
                               }</td>
                           }
                         })}

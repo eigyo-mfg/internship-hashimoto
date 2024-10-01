@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import Header from "@/app/components/ui/top/Header";
-import Timetable from "@/app//components/ui/top/Timetable";
 import { getRoomsWithReservationByDate } from "@/app/lib/data";
 import { Room } from "@/app/types/room";
 import { useSession } from "next-auth/react";
@@ -14,6 +13,8 @@ import { toast } from "react-toastify";
 import { signOut } from "next-auth/react";
 import EditReservation from "@/app/components/ui/top/modal/EditReservation";
 import { Reservation } from "@/app/types/reservation";
+import TopClientWrapper from "@/app/components/ui/top/TopClientWrapper";
+
 
 export enum ModalController {
   None,
@@ -39,6 +40,7 @@ export type InfoOfEditReservation = {
 Modal.setAppElement(".App");
 
 
+
 export default function Home() {
   const date = new Date();
   const timetableStartTime = 7;
@@ -53,6 +55,7 @@ export default function Home() {
   const [user, setUser] = useState<User>();
   const [currentPage, setCurrentPage] = useState(1);
   const { data: session } = useSession();
+  const [dataFetched, setDataFetched] = useState(false);
   let userId: string;
   if (!session) {
     return <div>loading...</div>;
@@ -75,6 +78,7 @@ export default function Home() {
     
       const roomsWithReservationsByDate = await getRoomsWithReservationByDate(selectedDate );
       const data = await getUser(userId);
+      setDataFetched(true);
 
       if (!data) {
         toast.error("ユーザー情報が取得できませんでした");
@@ -103,14 +107,14 @@ export default function Home() {
       }
       {modalController === ModalController.Edit && (
         
-        <EditReservation roomName={InfoOfEditReservation.room?.name} reservation={InfoOfEditReservation.reservation} isOpen={true} date={selectedDate} startAt={infoOfNewReservation.startAt} userId={userId}  setModalController={setModalController} />)
+        <EditReservation roomName={InfoOfEditReservation.room?.name} reservation={InfoOfEditReservation.reservation} isOpen={true} date={selectedDate} startAt={InfoOfEditReservation.startAt} userId={userId}  setModalController={setModalController} />)
       }
       {/* メイン */}
       <div className="mt-8">
         {/* Left: Reservation List */}
         <div className="flex-2 mr-8 basis-3/4">
           {/* 日付の選択 */}
-          <div className="text-right text-xl">
+          <div className="text-right text-base">
           <label className="block mt-4">Date：
           <input
             type="date"
@@ -119,8 +123,8 @@ export default function Home() {
             className="border border-gray-300 rounded mt-1 p-2"
           /></label>
           </div>
-          <div className="text-center my-8 text-2xl">
-          <button className="mx-16 my-4 disabled:text-gray-100 " disabled={currentPage === 1} onClick={()=> {
+          <div className="text-center my-2 text-lg">
+          <button className="mx-16 my-2 disabled:text-gray-100 " disabled={currentPage === 1} onClick={()=> {
             if (currentPage === 1) {
               return
             } else {
@@ -130,7 +134,7 @@ export default function Home() {
 
 
           }}>＜</button>予約一覧
-            <button className="mx-16 my-4 disabled:text-gray-100 " disabled={perPage * currentPage >= rooms.length} onClick={() => {
+            <button className="mx-16 my-2 disabled:text-gray-100 " disabled={perPage * currentPage >= rooms.length} onClick={() => {
               if (perPage * currentPage >= rooms.length) {
                 return
               } else {
@@ -140,10 +144,9 @@ export default function Home() {
           </div>
 
 
-          <Timetable rooms={rooms.slice(perPage * (currentPage - 1), perPage * currentPage )} setModalController={setModalController} setInfoOfNewReservation={setInfoOfNewReservation} setInfoOfEditReservation={setInfoOfEditReservation}/>
-
           {/* Room Time Slots */}
 
+            <TopClientWrapper selectedDate={new Date(Date.parse(selectedDate))} date={date} dataFetched={dataFetched} rooms={rooms} currentPage={currentPage} setModalController={setModalController} setInfoOfNewReservation={setInfoOfNewReservation} setInfoOfEditReservation={setInfoOfEditReservation} />
         </div>
 
 

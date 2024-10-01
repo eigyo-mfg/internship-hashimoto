@@ -68,7 +68,7 @@ export default function EditReservation({reservation,isOpen, roomName, date, use
         </div>
         <div className='text-center mt-8'>
           {userId === reservation?.userId &&
-        <input type='submit' value="削除する" className='bg-red-500 text-white w-24' onClick={handleSubmit} />
+        <input type='submit' value="削除する" className='rounded-full bg-red-500 text-white w-24' onClick={handleSubmit} />
       }
         </div>
       </div>

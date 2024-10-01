@@ -70,8 +70,8 @@ export default function CreateNewReservationModal({isOpen, room, date, userId, s
           } } />
         </div>
         <div className='mt-8'>
-          <button className='mx-16' onClick={closeModal}>キャンセル</button>
-        <input className='text-teal-600 font-bold' type='submit' value="予約する" onClick={handleSubmit}/>
+          <button className='mx-12 rounded-full w-28 border-blue-500 text-slate-500 border-2' onClick={closeModal}>キャンセル</button>
+        <input className='rounded-full bg-blue-500 text-slate-50 font-bold w-28' type='submit' value="予約する" onClick={handleSubmit}/>
         </div>
       </div>
       </div>
