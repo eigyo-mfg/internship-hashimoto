@@ -13,9 +13,15 @@ export default function Header({ user }: { user: User | undefined }) {
   if (!user) {
     userLine = "loading...";
   } else {
+    let privilegeLine
+    if (user.privilege === "admin") {
+      privilegeLine = "（管理者）";
+    } else {
+      privilegeLine = "";
+    }
     // ユーザー情報を表示
     userLine =
-      user.lastName + " " + user.firstName + "（" + user.privilege + "）";
+      user.lastName + " " + user.firstName  + privilegeLine;
   }
   return (
     <div>
