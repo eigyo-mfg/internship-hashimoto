@@ -1,16 +1,18 @@
-'use server'
+"use server";
 
 import prisma from "@/app/lib/prisma";
 import { User } from "@/app/types/user";
 import { Room } from "@/app/types/room";
-
-export async function getPassword(userId: string) {
+import { Reservation } from "@prisma/client";
+import { NewReservation } from "@/app/components/ui/top/modal/CreateNewReservationModal";
+// ユーザーIDからパスワードを取得
+export async function getPassword(userId: number) {
   const data = await prisma.user.findUnique({
     select: {
       password: true,
     },
     where: {
-      id: parseInt(userId),
+      id: userId,
     },
   });
   if (!data) {
@@ -19,8 +21,9 @@ export async function getPassword(userId: string) {
   return data.password;
 }
 
-export async function getUser(userId: string) {
-  const data = await prisma.user.findUnique({
+// ユーザー情報を取得
+export async function getUser(userId: number) {
+  const data:User | null = await prisma.user.findUnique({
     select: {
       id: true,
       firstName: true,
@@ -28,29 +31,24 @@ export async function getUser(userId: string) {
       privilege: true,
     },
     where: {
-      id: parseInt(userId),
+      id: userId,
     },
   });
   if (!data) {
     return null;
   }
-  const user: User = {
-    id: data.id.toString(),
-    firstName: data.firstName,
-    lastName: data.lastName,
-    privilege: data.privilege,
-  };
-  return user;
+  return data;
 }
 
+// 日付を指定して予約情報を取得
 export async function getRoomsWithReservationByDate(date: string) {
-  
-  const data = await prisma.room.findMany({
+  const data: Room[] = await prisma.room.findMany({
     select: {
       id: true,
       name: true,
       Reservations: {
         select: {
+          roomId: true,
           id: true,
           date: true,
           startAt: true,
@@ -74,49 +72,37 @@ export async function getRoomsWithReservationByDate(date: string) {
       },
     },
   });
-
-  const rooms: Room[] = data.map((room) => {
-    return {
-      id: room.id.toString(),
-      name: room.name,
-      Reservations: room.Reservations.map((reservation) => {
-        return {
-          id: reservation.id.toString(),
-          startAt: reservation.startAt,
-          endAt: reservation.endAt,
-          userId: reservation.userId.toString(),
-          roomId: room.id.toString(),
-          description: reservation.description,
-          user: {
-            id: reservation.user.id.toString(),
-            firstName: reservation.user.firstName,
-            lastName: reservation.user.lastName,
-          },
-        };
-      }),
-    };
-  });
-  return rooms;
+  
+  return data;
 }
 
-export async function createReservation(roomId: string, userId: string, date: string, startAt: number, description: string) {
+// 予約を作成
+export async function createReservation(
+  // roomId: string,
+  // userId: string,
+  // date: string,
+  // startAt: number,
+  // description: string,
+  reservation: NewReservation
+) {
   const data = await prisma.reservation.create({
     data: {
-      startAt: startAt,
-      endAt: startAt + 1,
-      date: date,
-      userId: parseInt(userId),
-      roomId: parseInt(roomId),
-      description: description,
+      startAt: reservation.startAt,
+      endAt: reservation.endAt,
+      date: reservation.date,
+      userId: reservation.userId,
+      roomId: reservation.roomId,
+      description: reservation.description,
     },
   });
   return data;
 }
 
-export async function deleteReservation(reservationId: string) {
+// 予約を削除
+export async function deleteReservation(reservationId: number) {
   const data = await prisma.reservation.delete({
     where: {
-      id: parseInt(reservationId),
+      id: reservationId,
     },
   });
   return data;

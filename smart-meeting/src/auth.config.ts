@@ -1,5 +1,10 @@
 import { NextAuthOptions, Session } from "next-auth";
+import Credentials from "next-auth/providers/credentials";
+import { getPassword, getUser } from "@/app/lib/data";
+import { passwordMatch } from "@/app/lib/utils/hash";
+import { z } from "zod";
 
+// セッションの型を拡張する
 declare module "next-auth" {
   interface Session {
     user: {
@@ -10,12 +15,9 @@ declare module "next-auth" {
     };
   }
 }
-import Credentials from "next-auth/providers/credentials";
-import { getPassword, getUser } from "@/app/lib/data";
-import { passwordMatch } from "@/app/lib/utils/hash";
-import { z } from "zod";
 
-export const authOptions:NextAuthOptions = {
+// 認証オプションを定義する
+export const authOptions: NextAuthOptions = {
   pages: {
     signIn: "/login",
   },
@@ -36,54 +38,62 @@ export const authOptions:NextAuthOptions = {
             password: z.string(),
           })
           .safeParse(credentials);
-        if (parsedCredentials.success) {
-          let id: string;
+
+          // パースに失敗した場合はエラーを出力してnullを返す
+        if (!parsedCredentials.success) {
+          console.log("Invalid credentials");
+          return null;
+        }
+
+        // パースに成功した場合は認証処理を行う
+          let id: number;
           let password: string;
+
           if (credentials) {
-            id = credentials.id as string;
+            id = parseInt(credentials.id as string);
             password = credentials.password as string;
           } else {
             console.log("No credentials");
             return null;
           }
-          //console.log('Credentials')
+
+        // ユーザーが存在するか確認する
           const hashedPassword = await getPassword(id);
           if (!hashedPassword) {
             return null;
           }
-          const isPasswordMatched = passwordMatch(
-            password,
-            hashedPassword
-          );
-          
-          //const passwordsMatch = await bcrypt.compare(password, user.password);
+          // パスワードが一致するか確認する
+          const isPasswordMatched = passwordMatch(password, hashedPassword);
           if (isPasswordMatched) {
             console.log("User authenticated successfully"); // デバッグ用のログ
-            return { id: id };
+            return { id: credentials.id };
           }
           console.log("passwords doesn't match"); // デバッグ用のログ
           return null;
-        }
-        console.log("Invalid credentials");
-        return null;
-      },
+        },
     }),
   ],
   callbacks: {
     async jwt({ token, user, profile }) {
-      console.log(user)
-      // Persist the OAuth access_token and or the user id to the token right after signin
+      // ユーザー情報が存在する場合はトークンに追加する
       if (user) {
         token.id = user.id;
       }
-      return token
+      return token;
     },
-    async session({ session, token }: { session: Session; token: any; user: any }) {
-      if(session?.user) {
+    // セッション情報を追加する
+    async session({
+      session,
+      token,
+    }: {
+      session: Session;
+      token: any;
+      user: any;
+    }) {
+      if (session?.user) {
         session.user.id = parseInt(token.id).toString();
       }
       return session;
     },
   },
-
-} 
+};
